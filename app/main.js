@@ -10,7 +10,7 @@ const rl = readline.createInterface({
 rl.prompt();
 
 rl.on('line', (command) => {
-	if(command == 'exit') {
+	if(command === 'exit') {
 		rl.close();
 		return;
 	}
