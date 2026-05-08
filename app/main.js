@@ -1,6 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
+const { exec } = require('node:child_process');
 
 let builtInCommands = ['echo', 'exit', 'type'];
 
@@ -25,7 +26,7 @@ rl.on('line', (input) => {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
 				const envPath = process.env.PATH;
-				let dirs = [...envPath.split(':')];
+				let dirs = [...envPath.split(path.delimiter)];
 				let fileIsExistAndExecutable = false;
 				
 				for(let dir of dirs) {
@@ -42,6 +43,8 @@ rl.on('line', (input) => {
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
 			}			
 		}
+	} else if(isExecutableCommand(path.join(command))) {
+		exec(`${command} ${...args}`);
 	} else {
 		console.log(`${input}: command not found`);	
 	}
