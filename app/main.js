@@ -1,4 +1,6 @@
 const readline = require("readline");
+const fs = require("fs");
+const path = require("path");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -12,31 +14,39 @@ rl.prompt();
 let builtInCommands = ['echo', 'exit', 'type'];
 
 rl.on('line', (input) => {
-	if(input.includes(' ')) {
-		let [command, ...args] = input.split(' ');
-		
-		if(isExitCommand(command)) {
-			rl.close();
-			return;
-		}
-		
-		if(isTypeCommand(command)) {
+	let [command, ...args] = input.split(' ');
+	
+	if(isExitCommand(command)) {
+		rl.close();
+		return;
+	} else if(isEchoCommand(command)) {
+		console.log(...args);
+	} else if(isTypeCommand(command)) {
+		if(args.length !== 0) {
 			if(isBuiltInCommand(args[0])) {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
-				console.log(`${args[0]}: not found`);
-			}
-		}
-		
-		if(isEchoCommand(command)) {
-			console.log(...args);
+				const envPath = process.env.PATH;
+				let dirs = [...envPath.split(':')];
+				let fileIsExistAndExecutable = false;
+				
+				for(let dir of dirs) {
+					const targetPath = path.join(dir, args[0]);
+					if(fs.existsSync(targetPath)) {
+						try {
+							fs.accessSync(targetPath, fs.constants.X_OK);
+							console.log(`${args[0]} is ${targetPath}`);
+							fileIsExistAndExecutable = true;
+							break;
+						} catch {
+							continue;
+						}
+					}
+				}
+				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
+			}			
 		}
 	} else {
-		if(isExitCommand(input)) {
-			rl.close();
-			return;
-		}
-	
 		console.log(`${input}: command not found`);	
 	}
 	rl.prompt();
