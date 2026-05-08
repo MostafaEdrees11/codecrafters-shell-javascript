@@ -2,17 +2,15 @@ const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
 
+let builtInCommands = ['echo', 'exit', 'type'];
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   prompt: "$ ",
 });
 
-// TODO: Uncomment the code below to pass the first stage
 rl.prompt();
-
-let builtInCommands = ['echo', 'exit', 'type'];
-
 rl.on('line', (input) => {
 	let [command, ...args] = input.split(' ');
 	
@@ -32,16 +30,12 @@ rl.on('line', (input) => {
 				
 				for(let dir of dirs) {
 					const targetPath = path.join(dir, args[0]);
-					if(fs.existsSync(targetPath)) {
-						try {
-							fs.accessSync(targetPath, fs.constants.X_OK);
-							console.log(`${args[0]} is ${targetPath}`);
-							fileIsExistAndExecutable = true;
-							break;
-						} catch {
-							continue;
-						}
-					}
+					try {
+						fs.accessSync(targetPath, fs.constants.X_OK);
+						console.log(`${args[0]} is ${targetPath}`);
+						fileIsExistAndExecutable = true;
+						break;
+					} catch { continue; }
 				}
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
 			}			
