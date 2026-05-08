@@ -20,7 +20,7 @@ rl.on('line', (input) => {
 	} else if(isEchoCommand(command)) {
 		console.log(...args);
 	} else if(isTypeCommand(command)) {
-		if(args.length !== 0) {
+		if(args.length > 0) {
 			if(isBuiltInCommand(args[0])) {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
@@ -30,12 +30,17 @@ rl.on('line', (input) => {
 				
 				for(let dir of dirs) {
 					const targetPath = path.join(dir, args[0]);
-					try {
-						fs.accessSync(targetPath, fs.constants.X_OK);
-						console.log(`${args[0]} is ${targetPath}`);
-						fileIsExistAndExecutable = true;
-						break;
-					} catch { continue; }
+					
+					if(fs.existsSync(targetPath)) {
+						try {
+							fs.accessSync(targetPath, fs.constants.X_OK);
+							console.log(`${args[0]} is ${targetPath}`);
+							fileIsExistAndExecutable = true;
+							break;
+						} catch {
+							continue;
+						}
+					}
 				}
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
 			}			
