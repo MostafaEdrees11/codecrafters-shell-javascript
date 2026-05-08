@@ -32,13 +32,10 @@ rl.on('line', (input) => {
 					const targetPath = path.join(dir, args[0]);
 					
 					if(fs.existsSync(targetPath)) {
-						try {
-							fs.accessSync(targetPath, fs.constants.X_OK);
+						if(isExecutableCommand(targetPath)) {
 							console.log(`${args[0]} is ${targetPath}`);
 							fileIsExistAndExecutable = true;
 							break;
-						} catch {
-							continue;
 						}
 					}
 				}
@@ -55,3 +52,12 @@ const isExitCommand = command => command === 'exit';
 const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
+
+const isExecutableCommand = (command) => {
+	try {
+		fs.accessSync(command, fs.constants.X_OK);
+		return true;
+	} catch {
+		return false;
+	}
+}
