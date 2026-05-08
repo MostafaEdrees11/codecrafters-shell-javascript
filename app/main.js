@@ -44,7 +44,7 @@ rl.on('line', (input) => {
 			}			
 		}
 	} else if(isExecutableCommand(path.join(command))) {
-		exec(`${command} ${...args}`);
+		exec(`${command} ${args.join(' ')}`);
 	} else {
 		console.log(`${input}: command not found`);	
 	}
