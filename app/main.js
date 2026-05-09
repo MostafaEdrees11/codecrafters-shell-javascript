@@ -36,6 +36,8 @@ rl.on('line', (input) => {
 				}
 			}			
 		}
+	} else if(isPWDCommand(command)) {
+		console.log(__dirname);
 	} else if(state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
@@ -49,6 +51,7 @@ const isExitCommand = command => command === 'exit';
 const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
+const isPWDCommand = command => command === 'pwd';
 
 const isExecutableCommand = (command) => {
 	let isExecutableFile = false;
