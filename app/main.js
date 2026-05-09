@@ -22,7 +22,7 @@ rl.on('line', (input) => {
 		rl.close();
 		return;
 	} else if(isEchoCommand(command)) {
-		console.log(...args);
+		console.log(args.join(' '));
 	} else if(isTypeCommand(command)) {
 		if(args.length > 0) {
 			if(isBuiltInCommand(args[0])) {
