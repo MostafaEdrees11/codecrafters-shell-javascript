@@ -60,7 +60,7 @@ const isBuiltInCommand = command => builtInCommands.includes(command);
 
 const isExecutableCommand = command => {
 	let isExecutableFile = false;
-	for(dir of dirs) {
+	for(let dir of dirs) {
 		const targetPath = path.join(dir, command);
 		
 		if(fs.existsSync(targetPath)) {
