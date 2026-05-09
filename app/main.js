@@ -37,7 +37,7 @@ rl.on('line', (input) => {
 			}			
 		}
 	} else if(isPWDCommand(command)) {
-		console.log(__dirname);
+		console.log(process.cwd());
 	} else if(state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
