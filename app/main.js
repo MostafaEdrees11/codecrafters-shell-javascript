@@ -16,6 +16,7 @@ const rl = readline.createInterface({
 rl.prompt();
 rl.on('line', (input) => {
 	let [command, ...args] = input.split(' ');
+	let {state, data} = isExecutableCommand(command);
 	
 	if(isExitCommand(command)) {
 		rl.close();
@@ -33,26 +34,9 @@ rl.on('line', (input) => {
 				} else {
 					console.log(`${args[0]}: not found`);
 				}
-				/*
-				let fileIsExistAndExecutable = false;
-				
-				for(let dir of dirs) {
-					const targetPath = path.join(dir, args[0]);
-					
-					if(fs.existsSync(targetPath)) {
-						try {
-							fs.accessSync(targetPath, fs.constants.X_OK)
-							console.log(`${args[0]} is ${targetPath}`);
-							fileIsExistAndExecutable = true;
-							break;
-						} catch { continue; }
-					}
-				}
-				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
-				*/
 			}			
 		}
-	} else if(isExecutableCommand(command).state) {
+	} else if(state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
 	} else {
@@ -66,7 +50,7 @@ const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
 
-const isExecutableCommand = command => {
+const isExecutableCommand = (command) => {
 	let isExecutableFile = false;
 	let targetPath = null;
 	for(let dir of dirs) {
