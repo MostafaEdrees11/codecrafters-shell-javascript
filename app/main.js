@@ -27,6 +27,13 @@ rl.on('line', (input) => {
 			if(isBuiltInCommand(args[0])) {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
+				let {state, data} = isExecutableCommand(args[0]);
+				if(state) {
+					console.log(`${args[0]} is ${data}`)
+				} else {
+					console.log(`${args[0]}: not found`);
+				}
+				/*
 				let fileIsExistAndExecutable = false;
 				
 				for(let dir of dirs) {
@@ -42,6 +49,7 @@ rl.on('line', (input) => {
 					}
 				}
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
+				*/
 			}			
 		}
 	} else if(isExecutableCommand(command).state) {
