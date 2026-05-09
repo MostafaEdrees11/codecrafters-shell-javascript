@@ -46,7 +46,7 @@ rl.on('line', (input) => {
 		}
 	} else if(isExecutableCommand(command)) {
 		let output = execSync(`${command} ${args.join(' ')}`);
-		console.log(output.toString());
+		process.stdout.write(output.toString());
 	} else {
 		console.log(`${input}: command not found`);	
 	}
