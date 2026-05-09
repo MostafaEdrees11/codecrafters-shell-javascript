@@ -4,6 +4,8 @@ const path = require("path");
 const { exec } = require('node:child_process');
 
 let builtInCommands = ['echo', 'exit', 'type'];
+const envPath = process.env.PATH;
+let dirs = [...envPath.split(path.delimiter)];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -25,25 +27,24 @@ rl.on('line', (input) => {
 			if(isBuiltInCommand(args[0])) {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
-				const envPath = process.env.PATH;
-				let dirs = [...envPath.split(path.delimiter)];
 				let fileIsExistAndExecutable = false;
 				
 				for(let dir of dirs) {
 					const targetPath = path.join(dir, args[0]);
 					
 					if(fs.existsSync(targetPath)) {
-						if(isExecutableCommand(targetPath)) {
+						try {
+							fs.accessSync(targetPath, fs.constants.X_OK)
 							console.log(`${args[0]} is ${targetPath}`);
 							fileIsExistAndExecutable = true;
 							break;
-						}
+						} catch { continue; }
 					}
 				}
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
 			}			
 		}
-	} else if(isExecutableCommand(path.join(command))) {
+	} else if(isExecutableCommand(command)) {
 		exec(`${command} ${args.join(' ')}`);
 	} else {
 		console.log(`${input}: command not found`);	
@@ -55,12 +56,19 @@ const isExitCommand = command => command === 'exit';
 const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
-
-const isExecutableCommand = (command) => {
-	try {
-		fs.accessSync(command, fs.constants.X_OK);
-		return true;
-	} catch {
-		return false;
+const isExecutableCommand = command => {
+	let isExecutableFile = false;
+	for(dir of dirs) {
+		const targetPath = path.join(dir, command);
+		
+		if(fs.existsSync(targetPath)) {
+			try {
+				fs.accessSync(targetPath, fs.constants.X_OK)
+				isExecutableFile = true;
+				break;
+			} catch { continue; }
+		}
 	}
+	
+	return isExecutableFile;
 }
