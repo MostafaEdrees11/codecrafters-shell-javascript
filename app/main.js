@@ -44,7 +44,7 @@ rl.on('line', (input) => {
 				if(!fileIsExistAndExecutable) console.log(`${args[0]}: not found`);
 			}			
 		}
-	} else if(isExecutableCommand(command)) {
+	} else if(isExecutableCommand(command).state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
 	} else {
@@ -57,6 +57,7 @@ const isExitCommand = command => command === 'exit';
 const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
+
 const isExecutableCommand = command => {
 	let isExecutableFile = false;
 	for(dir of dirs) {
@@ -71,5 +72,5 @@ const isExecutableCommand = command => {
 		}
 	}
 	
-	return isExecutableFile;
+	return {state: isExecutableFile, data: targetPath};
 }
