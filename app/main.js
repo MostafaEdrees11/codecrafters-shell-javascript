@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require('node:child_process');
 
-let builtInCommands = ['echo', 'exit', 'type'];
+let builtInCommands = ['echo', 'exit', 'type', 'pwd'];
 const envPath = process.env.PATH;
 let dirs = [...envPath.split(path.delimiter)];
 
