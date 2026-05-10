@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require('node:child_process');
 
-let builtInCommands = ['echo', 'exit', 'type', 'pwd'];
+let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
 const envPath = process.env.PATH;
 let dirs = [...envPath.split(path.delimiter)];
 
@@ -38,6 +38,19 @@ rl.on('line', (input) => {
 		}
 	} else if(isPWDCommand(command)) {
 		console.log(process.cwd());
+	} else if(isCDCommand(command)) {
+		if(args.length > 0) {
+			try {
+				if(args[0] === '~') {
+					process.chdir('~');
+				} else {
+					process.chdir(args[0]);
+				}
+			} catch {
+				console.log(`cd: ${args[0]}: No such file or directory`)
+			}
+			
+		}
 	} else if(state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
@@ -52,6 +65,7 @@ const isEchoCommand = command => command === 'echo';
 const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
 const isPWDCommand = command => command === 'pwd';
+const isCDCommand = command => command === 'cd';
 
 const isExecutableCommand = (command) => {
 	let isExecutableFile = false;
