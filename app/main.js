@@ -43,9 +43,8 @@ rl.on('line', (input) => {
 			try {
 				process.chdir(args[0]);
 			} catch {
-				console.log(`cd: ${args[0]}: No such file or directory`)
+				console.log(`cd: ${args[0]}: No such file or directory`);
 			}
-			
 		}
 	} else if(state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
