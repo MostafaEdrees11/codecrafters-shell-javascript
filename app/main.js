@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require('node:child_process');
 
-let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd', 'cat'];
+let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
 const envPath = process.env.PATH;
 let dirs = [...envPath.split(path.delimiter)];
 
@@ -87,7 +87,6 @@ const isExecutableCommand = (command) => {
 			} catch { continue; }
 		}
 	}
-
 	return { state: isExecutableFile, data: targetPath };
 }
 
