@@ -3,55 +3,61 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require('node:child_process');
 
-let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
+let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd', 'cat'];
 const envPath = process.env.PATH;
 let dirs = [...envPath.split(path.delimiter)];
 
 const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  prompt: "$ ",
+	input: process.stdin,
+	output: process.stdout,
+	prompt: "$ ",
 });
 
 rl.prompt();
 rl.on('line', (input) => {
-	let [command, ...args] = input.split(' ');
-	let {state, data} = isExecutableCommand(command);
-	
-	if(isExitCommand(command)) {
+	let indexOfFirstSpace = input.indexOf(' ') === -1 ? input.length : input.indexOf(' ');
+	let command = input.slice(0, indexOfFirstSpace);
+	let resetOfInput = input.slice(indexOfFirstSpace + 1);
+	let args = constructArgs(resetOfInput);
+	let { state, data } = isExecutableCommand(command);
+
+	if (isExitCommand(command)) {
 		rl.close();
 		return;
-	} else if(isEchoCommand(command)) {
+	} else if (isEchoCommand(command)) {
 		console.log(args.join(' '));
-	} else if(isTypeCommand(command)) {
-		if(args.length > 0) {
-			if(isBuiltInCommand(args[0])) {
+	} else if (isTypeCommand(command)) {
+		if (args.length > 0) {
+			if (isBuiltInCommand(args[0])) {
 				console.log(`${args[0]} is a shell builtin`);
 			} else {
-				let {state, data} = isExecutableCommand(args[0]);
-				if(state) {
+				let { state, data } = isExecutableCommand(args[0]);
+				if (state) {
 					console.log(`${args[0]} is ${data}`)
 				} else {
 					console.log(`${args[0]}: not found`);
 				}
-			}			
+			}
 		}
-	} else if(isPWDCommand(command)) {
+	} else if (isPWDCommand(command)) {
 		console.log(process.cwd());
-	} else if(isCDCommand(command)) {
-		if(args.length > 0) {
+	} else if (isCDCommand(command)) {
+		if (args.length > 0) {
 			try {
-				if(args[0] === '~') process.chdir(process.env.HOME);
+				if (args[0] === '~') process.chdir(process.env.HOME);
 				else process.chdir(args[0]);
 			} catch {
 				console.log(`cd: ${args[0]}: No such file or directory`);
 			}
 		}
-	} else if(state) {
+	} else if (isCatCommand(command)) {
+		const data = fs.readFileSync(args[0], 'utf8');
+		console.log(data);
+	} else if (state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
 	} else {
-		console.log(`${input}: command not found`);	
+		console.log(`${input}: command not found`);
 	}
 	rl.prompt();
 })
@@ -62,14 +68,15 @@ const isTypeCommand = command => command === 'type';
 const isBuiltInCommand = command => builtInCommands.includes(command);
 const isPWDCommand = command => command === 'pwd';
 const isCDCommand = command => command === 'cd';
+const isCatCommand = command => command === 'cat';
 
 const isExecutableCommand = (command) => {
 	let isExecutableFile = false;
 	let targetPath = null;
-	for(let dir of dirs) {
+	for (let dir of dirs) {
 		targetPath = path.join(dir, command);
-		
-		if(fs.existsSync(targetPath)) {
+
+		if (fs.existsSync(targetPath)) {
 			try {
 				fs.accessSync(targetPath, fs.constants.X_OK)
 				isExecutableFile = true;
@@ -77,6 +84,36 @@ const isExecutableCommand = (command) => {
 			} catch { continue; }
 		}
 	}
-	
-	return {state: isExecutableFile, data: targetPath};
+
+	return { state: isExecutableFile, data: targetPath };
+}
+
+
+const constructArgs = (resetOfInput) => {
+	let counter = 0, hasSingleQuote = false, temp = '', args = [];;
+	while (counter < resetOfInput.length) {
+		if (resetOfInput[counter] === "'") {
+			hasSingleQuote = !hasSingleQuote;
+			counter++;
+			continue;
+		}
+
+		if (!hasSingleQuote && resetOfInput[counter] === ' ' && temp.length > 0) {
+			args.push(temp);
+			temp = '';
+			counter++;
+			continue;
+		}
+
+		if (!hasSingleQuote && resetOfInput[counter] === ' ' && temp.length === 0) {
+			counter++;
+			continue;
+		}
+
+		temp += resetOfInput[counter];
+		counter++;
+	}
+
+	if(temp.length > 0) args.push(temp);
+	return args;
 }
