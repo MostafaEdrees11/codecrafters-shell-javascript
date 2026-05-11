@@ -92,28 +92,34 @@ const isExecutableCommand = (command) => {
 
 
 const constructArgs = (resetOfInput) => {
-	let counter = 0, hasSingleQuote = false, temp = '', args = [];;
+	let counter = 0, hasSingleQuote = false, temp = '', args = [];
+	let quote = {
+		hasQuote: false,
+		quoteSign: ''
+	}
 	while (counter < resetOfInput.length) {
-		if (resetOfInput[counter] === "'") {
-			if(hasSingleQuote) {
-				if(temp.length > 1) temp = temp.replace("'", "");
+		if (resetOfInput[counter] === "'" || resetOfInput[counter] === '"') {
+			if(quote.quoteSign === "") quote.quoteSign = resetOfInput[counter];
+			
+			if(quote.hasQuote) {
+				if(temp.length > 1 && resetOfInput[counter] === quote.quoteSign) temp = temp.replace(quote.quoteSign, "");
 				else temp += resetOfInput[counter];
 			}
 			else temp += resetOfInput[counter];
 
-			hasSingleQuote = !hasSingleQuote;
+			if(resetOfInput[counter] === quote.quoteSign) quote.hasQuote = !quote.hasQuote;
 			counter++;
 			continue;
 		}
 
-		if (!hasSingleQuote && resetOfInput[counter] === ' ' && temp.length > 0) {
+		if (!quote.hasQuote && resetOfInput[counter] === ' ' && temp.length > 0) {
 			args.push(temp);
 			temp = '';
 			counter++;
 			continue;
 		}
 
-		if (!hasSingleQuote && resetOfInput[counter] === ' ' && temp.length === 0) {
+		if (!quote.hasQuote && resetOfInput[counter] === ' ' && temp.length === 0) {
 			counter++;
 			continue;
 		}
