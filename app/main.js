@@ -51,7 +51,10 @@ rl.on('line', (input) => {
 			}
 		}
 	} else if (isCatCommand(command)) {
-		const data = fs.readFileSync(args[0], 'utf8');
+		let data = '';
+		args.forEach(arg => {
+			data += fs.readFileSync(arg, 'utf8');
+		})
 		console.log(data);
 	} else if (state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
@@ -93,6 +96,12 @@ const constructArgs = (resetOfInput) => {
 	let counter = 0, hasSingleQuote = false, temp = '', args = [];;
 	while (counter < resetOfInput.length) {
 		if (resetOfInput[counter] === "'") {
+			if(hasSingleQuote) {
+				if(temp.length > 1) temp = temp.replace("'", "");
+				else temp += resetOfInput[counter];
+			}
+			else temp += resetOfInput[counter];
+
 			hasSingleQuote = !hasSingleQuote;
 			counter++;
 			continue;
