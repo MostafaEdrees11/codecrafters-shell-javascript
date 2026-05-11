@@ -55,7 +55,7 @@ rl.on('line', (input) => {
 		args.forEach(arg => {
 			data += fs.readFileSync(arg, 'utf8');
 		})
-		console.log(data);
+		process.stdout.write(data);
 	} else if (state) {
 		let output = execSync(`${command} ${args.join(' ')}`);
 		process.stdout.write(output.toString());
