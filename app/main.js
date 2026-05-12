@@ -7,6 +7,8 @@ let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
 const envPath = process.env.PATH;
 let dirs = [...envPath.split(path.delimiter)];
 
+let specialCharactersToEscape = ['"', '\\', '$', '`'];
+
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
@@ -102,6 +104,14 @@ const constructArgs = (resetOfInput) => {
 			temp += resetOfInput[counter + 1];
 			counter += 2;
 			continue;
+		}
+		
+		if(quote.hasQuote && quote.quoteSign === '"' && resetOfInput[counter] === "\\") {
+			if(specialCharactersToEscape.includes(resetOfInput[counter + 1])) {
+				temp += resetOfInput[counter + 1];
+				counter += 2;
+				continue;
+			}
 		}
 		
 		if (resetOfInput[counter] === "'" || resetOfInput[counter] === '"') {
