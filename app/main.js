@@ -17,10 +17,15 @@ const rl = readline.createInterface({
 
 rl.prompt();
 rl.on('line', (input) => {
-	let indexOfFirstSpace = input.indexOf(' ') === -1 ? input.length : input.indexOf(' ');
-	let command = input.slice(0, indexOfFirstSpace);
-	let resetOfInput = input.slice(indexOfFirstSpace + 1);
-	let args = constructArgs(resetOfInput);
+	let command, args = [];
+	if(input.startsWith('"') || input.startsWith("'")) {
+		[command, ...args] = constructArgs(input);
+	} else {
+		let indexOfFirstSpace = input.indexOf(' ') === -1 ? input.length : input.indexOf(' ');
+		command = input.slice(0, indexOfFirstSpace);
+		let resetOfInput = input.slice(indexOfFirstSpace + 1);
+		args = constructArgs(resetOfInput);
+	}
 	let { state, data } = isExecutableCommand(command);
 
 	if (isExitCommand(command)) {
