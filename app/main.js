@@ -98,7 +98,7 @@ const constructArgs = (resetOfInput) => {
 		quoteSign: ''
 	}
 	while (counter < resetOfInput.length) {
-		if(resetOfInput[counter] === "\\") {
+		if(!quote.hasQuote && resetOfInput[counter] === "\\") {
 			temp += resetOfInput[counter + 1];
 			counter += 2;
 			continue;
