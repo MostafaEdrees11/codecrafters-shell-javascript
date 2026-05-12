@@ -92,12 +92,18 @@ const isExecutableCommand = (command) => {
 
 
 const constructArgs = (resetOfInput) => {
-	let counter = 0, hasSingleQuote = false, temp = '', args = [];
+	let counter = 0, temp = '', args = [];
 	let quote = {
 		hasQuote: false,
 		quoteSign: ''
 	}
 	while (counter < resetOfInput.length) {
+		if(resetOfInput[counter] === "\\") {
+			temp += resetOfInput[counter + 1];
+			counter += 2;
+			continue;
+		}
+		
 		if (resetOfInput[counter] === "'" || resetOfInput[counter] === '"') {
 			if(quote.quoteSign === "") quote.quoteSign = resetOfInput[counter];
 			
