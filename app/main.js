@@ -1,13 +1,11 @@
 const readline = require("readline");
-const fs = require("fs");
-const path = require("path");
 const { execFileSync } = require('node:child_process');
 
-let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
-const envPath = process.env.PATH;
-let dirs = [...envPath.split(path.delimiter)];
-
-let specialCharactersToEscape = ['"', '\\', '$', '`'];
+const { isExist } = require('./utils/isExit');
+const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
+const { isExecutable } = require("./utils/isExecutable");
+const { handleBuiltInCommands } = require("./utils/handleBuiltInCommands");
+const { handleQuotes } = require("./utils/handleQuotes");
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -18,51 +16,24 @@ const rl = readline.createInterface({
 rl.prompt();
 rl.on('line', (input) => {
 	let command, args = [];
-	if(input.startsWith('"') || input.startsWith("'")) {
-		[command, ...args] = constructArgs(input);
+
+	if (input.startsWith('"') || input.startsWith("'")) {
+		[command, ...args] = handleQuotes(input);
 	} else {
 		let indexOfFirstSpace = input.indexOf(' ') === -1 ? input.length : input.indexOf(' ');
 		command = input.slice(0, indexOfFirstSpace);
 		let resetOfInput = input.slice(indexOfFirstSpace + 1);
-		args = constructArgs(resetOfInput);
+		args = handleQuotes(resetOfInput);
 	}
-	let { state, data } = isExecutableCommand(command);
+	let { state, data } = isExecutable(command);
 
-	if (isExitCommand(command)) {
+	if (isExist(command)) {
 		rl.close();
 		return;
-	} else if (isEchoCommand(command)) {
-		console.log(args.join(' '));
-	} else if (isTypeCommand(command)) {
-		if (args.length > 0) {
-			if (isBuiltInCommand(args[0])) {
-				console.log(`${args[0]} is a shell builtin`);
-			} else {
-				let { state, data } = isExecutableCommand(args[0]);
-				if (state) {
-					console.log(`${args[0]} is ${data}`)
-				} else {
-					console.log(`${args[0]}: not found`);
-				}
-			}
-		}
-	} else if (isPWDCommand(command)) {
-		console.log(process.cwd());
-	} else if (isCDCommand(command)) {
-		if (args.length > 0) {
-			try {
-				if (args[0] === '~') process.chdir(process.env.HOME);
-				else process.chdir(args[0]);
-			} catch {
-				console.log(`cd: ${args[0]}: No such file or directory`);
-			}
-		}
-	} else if (isCatCommand(command)) {
-		let data = '';
-		args.forEach(arg => {
-			data += fs.readFileSync(arg, 'utf8');
-		})
-		process.stdout.write(data);
+	}
+
+	if (isBuiltInCommand(command)) {
+		handleBuiltInCommands(command, args);
 	} else if (state) {
 		let output = execFileSync(command, args);
 		process.stdout.write(output.toString());
@@ -71,84 +42,3 @@ rl.on('line', (input) => {
 	}
 	rl.prompt();
 })
-
-const isExitCommand = command => command === 'exit';
-const isEchoCommand = command => command === 'echo';
-const isTypeCommand = command => command === 'type';
-const isBuiltInCommand = command => builtInCommands.includes(command);
-const isPWDCommand = command => command === 'pwd';
-const isCDCommand = command => command === 'cd';
-const isCatCommand = command => command === 'cat';
-
-const isExecutableCommand = (command) => {
-	let isExecutableFile = false;
-	let targetPath = null;
-	for (let dir of dirs) {
-		targetPath = path.join(dir, command);
-
-		if (fs.existsSync(targetPath)) {
-			try {
-				fs.accessSync(targetPath, fs.constants.X_OK)
-				isExecutableFile = true;
-				break;
-			} catch { continue; }
-		}
-	}
-	return { state: isExecutableFile, data: targetPath };
-}
-
-
-const constructArgs = (resetOfInput) => {
-	let counter = 0, temp = '', args = [];
-	let quote = {
-		hasQuote: false,
-		quoteSign: ''
-	}
-	while (counter < resetOfInput.length) {
-		if(!quote.hasQuote && resetOfInput[counter] === "\\") {
-			temp += resetOfInput[counter + 1];
-			counter += 2;
-			continue;
-		}
-		
-		if(quote.hasQuote && quote.quoteSign === '"' && resetOfInput[counter] === "\\") {
-			if(specialCharactersToEscape.includes(resetOfInput[counter + 1])) {
-				temp += resetOfInput[counter + 1];
-				counter += 2;
-				continue;
-			}
-		}
-		
-		if (resetOfInput[counter] === "'" || resetOfInput[counter] === '"') {
-			if(quote.quoteSign === "") quote.quoteSign = resetOfInput[counter];
-			
-			if(quote.hasQuote) {
-				if(temp.length > 1 && resetOfInput[counter] === quote.quoteSign) temp = temp.replace(quote.quoteSign, "");
-				else temp += resetOfInput[counter];
-			}
-			else temp += resetOfInput[counter];
-
-			if(resetOfInput[counter] === quote.quoteSign) quote.hasQuote = !quote.hasQuote;
-			counter++;
-			continue;
-		}
-
-		if (!quote.hasQuote && resetOfInput[counter] === ' ' && temp.length > 0) {
-			args.push(temp);
-			temp = '';
-			counter++;
-			continue;
-		}
-
-		if (!quote.hasQuote && resetOfInput[counter] === ' ' && temp.length === 0) {
-			counter++;
-			continue;
-		}
-
-		temp += resetOfInput[counter];
-		counter++;
-	}
-
-	if(temp.length > 0) args.push(temp);
-	return args;
-}
