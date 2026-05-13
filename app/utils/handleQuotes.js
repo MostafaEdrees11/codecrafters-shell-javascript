@@ -23,15 +23,15 @@ const handleQuotes = (input) => {
         }
 
         if (input[counter] === "'" || input[counter] === '"') {
-            if (quote.quoteSign === "") quote.quoteSign = input[counter];
-
-            if (quote.hasQuote) {
-                if (temp.length > 1 && input[counter] === quote.quoteSign) temp = temp.replace(quote.quoteSign, "");
-                else temp += input[counter];
+            if (!quote.hasQuote) {
+                quote.quoteSign = input[counter];
+                quote.hasQuote = true;
+            } else if (quote.quoteSign === input[counter]) {
+                quote.hasQuote = false;
+                quote.quoteSign = '';
+            } else {
+                temp += input[counter];
             }
-            else temp += input[counter];
-
-            if (input[counter] === quote.quoteSign) quote.hasQuote = !quote.hasQuote;
             counter++;
             continue;
         }

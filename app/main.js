@@ -15,16 +15,7 @@ const rl = readline.createInterface({
 
 rl.prompt();
 rl.on('line', (input) => {
-	let command, args = [];
-
-	if (input.startsWith('"') || input.startsWith("'")) {
-		[command, ...args] = handleQuotes(input);
-	} else {
-		let indexOfFirstSpace = input.indexOf(' ') === -1 ? input.length : input.indexOf(' ');
-		command = input.slice(0, indexOfFirstSpace);
-		let resetOfInput = input.slice(indexOfFirstSpace + 1);
-		args = handleQuotes(resetOfInput);
-	}
+	let [command, ...args] = handleQuotes(input);
 	let { state, data } = isExecutable(command);
 
 	if (isExist(command)) {
