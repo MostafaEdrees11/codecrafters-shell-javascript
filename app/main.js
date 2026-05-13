@@ -1,7 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require('node:child_process');
+const { execFileSync } = require('node:child_process');
 
 let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
 const envPath = process.env.PATH;
@@ -64,7 +64,7 @@ rl.on('line', (input) => {
 		})
 		process.stdout.write(data);
 	} else if (state) {
-		let output = execSync(`${command} ${args.join(' ')}`);
+		let output = execFileSync(command, args);
 		process.stdout.write(output.toString());
 	} else {
 		console.log(`${input}: command not found`);
