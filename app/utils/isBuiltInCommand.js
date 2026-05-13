@@ -1,6 +1,6 @@
-let builtInCommands = ['echo', 'exit', 'type', 'pwd', 'cd'];
+const { builtInCommands } = require("./handleBuiltInCommands");
 
-const isBuiltInCommand = command => builtInCommands.includes(command);
+const isBuiltInCommand = command => builtInCommands.hasOwnProperty(command);
 
 module.exports = {
     isBuiltInCommand

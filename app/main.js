@@ -6,6 +6,8 @@ const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
 const { isExecutable } = require("./utils/isExecutable");
 const { handleBuiltInCommands } = require("./utils/handleBuiltInCommands");
 const { handleQuotes } = require("./utils/handleQuotes");
+const { isExternalCommand } = require("./utils/isExternalCommand");
+const { handleExternalCommands } = require("./utils/handleExternalCommands");
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -16,7 +18,6 @@ const rl = readline.createInterface({
 rl.prompt();
 rl.on('line', (input) => {
 	let [command, ...args] = handleQuotes(input);
-	let { state, data } = isExecutable(command);
 
 	if (isExist(command)) {
 		rl.close();
@@ -25,11 +26,16 @@ rl.on('line', (input) => {
 
 	if (isBuiltInCommand(command)) {
 		handleBuiltInCommands(command, args);
-	} else if (state) {
-		let output = execFileSync(command, args);
-		process.stdout.write(output.toString());
+	} else if (isExternalCommand(command)) {
+		handleExternalCommands(command, args);
 	} else {
-		console.log(`${input}: command not found`);
+		let { state, data } = isExecutable(command);
+		if (state) {
+			let output = execFileSync(command, args);
+			process.stdout.write(output.toString());
+		} else {
+			console.log(`${input}: command not found`);
+		}
 	}
 	rl.prompt();
 })
