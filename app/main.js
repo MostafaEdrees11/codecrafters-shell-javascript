@@ -19,11 +19,6 @@ rl.prompt();
 rl.on('line', (input) => {
 	let [command, ...args] = handleQuotes(input);
 
-	if (isExist(command)) {
-		rl.close();
-		return;
-	}
-
 	if (isBuiltInCommand(command)) {
 		handleBuiltInCommands(command, args);
 	} else if (isExternalCommand(command)) {

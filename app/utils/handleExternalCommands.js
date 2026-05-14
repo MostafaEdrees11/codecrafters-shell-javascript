@@ -1,7 +1,9 @@
 const { cat } = require('../external-commands/cat');
+const { ls } = require('../external-commands/ls');
 
 const externalCommands = {
-    'cat': cat
+    'cat': cat,
+    'ls': ls
 }
 
 const handleExternalCommands = (command, args) => {

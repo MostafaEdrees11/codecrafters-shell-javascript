@@ -3,12 +3,12 @@ const echo = (undefined, args) => {
         const indexOfRedirection = args.findIndex(arg => arg === '>' || arg === '1>');
         if (indexOfRedirection !== -1) {
             const fs = require('fs');
-            let output = args.slice(0, indexOfRedirection).join(' ');
+            let output = args.slice(0, indexOfRedirection).join(' ') + '\n';
             const fileName = args[indexOfRedirection + 1];
             fs.writeFileSync(fileName, output);
             return;
         }
-        console.log(args.join(' '));
+        process.stdout.write(args.join(' ') + '\n');
     }
 }
 
