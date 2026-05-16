@@ -17,19 +17,21 @@ const rl = readline.createInterface({
 
 rl.prompt();
 rl.on('line', (input) => {
-	let [command, ...args] = handleQuotes(input);
+	if (input.trim()) {
+		let [command, ...args] = handleQuotes(input);
 
-	if (isBuiltInCommand(command)) {
-		handleBuiltInCommands(command, args);
-	} else if (isExternalCommand(command)) {
-		handleExternalCommands(command, args);
-	} else {
-		let { state, data } = isExecutable(command);
-		if (state) {
-			let output = execFileSync(command, args);
-			process.stdout.write(output.toString());
+		if (isBuiltInCommand(command)) {
+			handleBuiltInCommands(command, args);
+		} else if (isExternalCommand(command)) {
+			handleExternalCommands(command, args);
 		} else {
-			console.log(`${input}: command not found`);
+			let { state, data } = isExecutable(command);
+			if (state) {
+				let output = execFileSync(command, args);
+				process.stdout.write(output.toString());
+			} else {
+				console.log(`${input}: command not found`);
+			}
 		}
 	}
 	rl.prompt();
