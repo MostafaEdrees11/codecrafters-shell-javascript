@@ -3,12 +3,18 @@ const echo = (undefined, args) => {
 
     if (args.length > 0) {
         const indexOfOutputRedirection = args.findIndex(arg => arg === '>' || arg === '1>');
+        const indexOfAppendOutput = args.findIndex(arg => arg === '>>' || arg === '1>>');
+        const indexOfOutput = indexOfOutputRedirection !== -1 ? indexOfOutputRedirection : indexOfAppendOutput;
         const indexOfErrorRedirection = args.findIndex(arg => arg === '2>');
         try {
-            if (indexOfOutputRedirection !== -1) {
-                let output = args.slice(0, indexOfOutputRedirection).join(' ') + '\n';
-                const fileName = args[indexOfOutputRedirection + 1];
-                fs.writeFileSync(fileName, output);
+            if (indexOfOutput !== -1) {
+                let output = args.slice(0, indexOfOutput).join(' ') + '\n';
+                const fileName = args[indexOfOutput + 1];
+                if (indexOfOutputRedirection !== -1) {
+                    fs.writeFileSync(fileName, output);
+                } else if (indexOfAppendOutput !== -1) {
+                    fs.appendFileSync(fileName, output);
+                }
                 return;
             }
             if (indexOfErrorRedirection !== -1) {
