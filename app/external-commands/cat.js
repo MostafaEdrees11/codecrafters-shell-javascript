@@ -6,9 +6,11 @@ const cat = (undefined, args) => {
     const indexOfOutputRedirection = args.findIndex(arg => arg === '>' || arg === '1>');
     const indexOfErrorRedirection = args.findIndex(arg => arg === '2>');
     const indexOfAppendOutput = args.findIndex(arg => arg === '>>' || arg === '1>>');
+    const indexOfAppendError = args.findIndex(arg => arg === '2>>');
     const indexOfOutput = indexOfOutputRedirection !== -1 ? indexOfOutputRedirection : indexOfAppendOutput;
-    const redirectionIndex = indexOfOutput !== -1 && indexOfErrorRedirection !== -1 ? Math.min(indexOfOutput, indexOfErrorRedirection) :
-        indexOfOutput !== -1 ? indexOfOutput : indexOfErrorRedirection;
+    const indexOfError = indexOfErrorRedirection !== -1 ? indexOfErrorRedirection : indexOfAppendError;
+    const redirectionIndex = indexOfOutput !== -1 && indexOfError !== -1 ? Math.min(indexOfOutput, indexOfError) :
+        indexOfOutput !== -1 ? indexOfOutput : indexOfError;
     let files = args.slice(0, redirectionIndex !== -1 ? redirectionIndex : args.length);
 
     try {
@@ -20,9 +22,13 @@ const cat = (undefined, args) => {
             process.stdout.write(data);
         }
     } catch (err) {
-        if (indexOfErrorRedirection !== -1) {
-            const fileName = args[indexOfErrorRedirection + 1];
-            fs.writeFileSync(fileName, `cat: ${path.basename(err.path)}: No such file or directory\n`);
+        if (indexOfError !== -1) {
+            const fileName = args[indexOfError + 1];
+            if (indexOfErrorRedirection !== -1) {
+                fs.writeFileSync(fileName, `cat: ${path.basename(err.path)}: No such file or directory\n`);
+            } else if (indexOfAppendError !== -1) {
+                fs.appendFileSync(fileName, `cat: ${path.basename(err.path)}: No such file or directory\n`);
+            }
 
             if (data !== '') process.stdout.write(data);
         }
