@@ -4,6 +4,7 @@ const { execFileSync } = require('node:child_process');
 const { isExist } = require('./utils/isExit');
 const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
 const { isExecutable } = require("./utils/isExecutable");
+const { getExecutableFiles } = require("./utils/getExecutableFiles");
 const { handleBuiltInCommands } = require("./utils/handleBuiltInCommands");
 const { handleQuotes } = require("./utils/handleQuotes");
 const { isExternalCommand } = require("./utils/isExternalCommand");
@@ -14,7 +15,8 @@ const rl = readline.createInterface({
 	output: process.stdout,
 	prompt: "$ ",
 	completer: (line) => {
-		const commands = ['echo ', 'exit '];
+		const executables = getExecutableFiles();
+		const commands = ['echo ', 'exit ', ...executables.map(cmd => cmd + ' ')];
 		const hits = commands.filter((cmd) => cmd.startsWith(line));
 		if (hits.length === 0) {
 			process.stdout.write('\u0007');
