@@ -16,7 +16,10 @@ const rl = readline.createInterface({
 	completer: (line) => {
 		const commands = ['echo ', 'exit '];
 		const hits = commands.filter((cmd) => cmd.startsWith(line));
-		return [hits.length ? hits : commands, line];
+		if (hits.length === 0) {
+			process.stdout.write('\u0007');
+		}
+		return [hits.length ? hits : [], line];
 	}
 });
 
