@@ -13,6 +13,11 @@ const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 	prompt: "$ ",
+	completer: (line) => {
+		const commands = ['echo ', 'exit '];
+		const hits = commands.filter((cmd) => cmd.startsWith(line));
+		return [hits.length ? hits : commands, line];
+	}
 });
 
 rl.prompt();
