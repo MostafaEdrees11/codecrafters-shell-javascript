@@ -10,18 +10,49 @@ const { handleQuotes } = require("./utils/handleQuotes");
 const { isExternalCommand } = require("./utils/isExternalCommand");
 const { handleExternalCommands } = require("./utils/handleExternalCommands");
 
+let tabState = {
+	isPressed: false,
+	line: null
+}
+
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 	prompt: "$ ",
 	completer: (line) => {
 		const executables = getExecutableFiles();
-		const commands = ['echo ', 'exit ', ...executables.map(cmd => cmd + ' ')];
+		const commands = ['echo ', 'exit ',
+			...executables
+				.filter(cmd => !cmd.startsWith('echo') && !cmd.startsWith('exit'))
+				.map(cmd => cmd + ' ')];
 		const hits = commands.filter((cmd) => cmd.startsWith(line));
+
 		if (hits.length === 0) {
 			process.stdout.write('\u0007');
+			return [[], line];
 		}
-		return [hits.length ? hits : [], line];
+		if (hits.length > 1) {
+			if (tabState?.line === line) {
+				if (!tabState.isPressed) {
+					process.stdout.write('\u0007');
+					tabState.isPressed = true;
+					return [[], line];
+				} else {
+					tabState.isPressed = false;
+					tabState.line = line;
+					hits.sort();
+					process.stdout.write('\n' + hits.join(' ') + '\n');
+					process.stdout.write(`$ ${line}`);
+					return [[], line];
+				}
+			} else {
+				tabState.isPressed = true;
+				tabState.line = line;
+				process.stdout.write('\u0007');
+				return [[], line];
+			}
+		}
+		return [hits.length ? hits : commands, line];
 	}
 });
 
