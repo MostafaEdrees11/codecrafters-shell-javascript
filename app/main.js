@@ -9,6 +9,7 @@ const { handleBuiltInCommands } = require("./utils/handleBuiltInCommands");
 const { handleQuotes } = require("./utils/handleQuotes");
 const { isExternalCommand } = require("./utils/isExternalCommand");
 const { handleExternalCommands } = require("./utils/handleExternalCommands");
+const { longestCommonPrefix } = require("./utils/longestCommonPrefix");
 
 let tabState = {
 	isPressed: false,
@@ -23,7 +24,6 @@ const rl = readline.createInterface({
 		const executables = getExecutableFiles();
 		const commands = ['echo ', 'exit ',
 			...executables
-				.filter(cmd => !cmd.startsWith('echo') && !cmd.startsWith('exit'))
 				.map(cmd => cmd + ' ')];
 		const hits = commands.filter((cmd) => cmd.startsWith(line));
 
@@ -32,24 +32,34 @@ const rl = readline.createInterface({
 			return [[], line];
 		}
 		if (hits.length > 1) {
-			if (tabState?.line === line) {
-				if (!tabState.isPressed) {
-					process.stdout.write('\u0007');
-					tabState.isPressed = true;
-					return [[], line];
-				} else {
-					tabState.isPressed = false;
-					tabState.line = line;
-					hits.sort();
-					process.stdout.write('\n' + hits.join(' ') + '\n');
-					process.stdout.write(`$ ${line}`);
-					return [[], line];
-				}
-			} else {
+			hits.sort();
+			let prefix = longestCommonPrefix(hits.filter(cmd => cmd !== line));
+
+			if (prefix.length && prefix !== line) {
+				rl.write(`${prefix.slice(line.length)}`);
+				line += prefix.slice(line.length);
 				tabState.isPressed = true;
 				tabState.line = line;
-				process.stdout.write('\u0007');
 				return [[], line];
+			} else {
+				if (tabState?.line === line) {
+					if (!tabState.isPressed) {
+						process.stdout.write('\u0007');
+						tabState.isPressed = true;
+						return [[], line];
+					} else {
+						tabState.isPressed = false;
+						tabState.line = line;
+						process.stdout.write('\n' + hits.join('') + '\n');
+						setImmediate(() => rl.prompt(true));
+						return [[], line];
+					}
+				} else {
+					tabState.isPressed = true;
+					tabState.line = line;
+					process.stdout.write('\u0007');
+					return [[], line];
+				}
 			}
 		}
 		return [hits.length ? hits : commands, line];
