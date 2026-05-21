@@ -18,16 +18,32 @@ const handleTabKeyPress = (rl, line, isCommand) => {
         hits = searchArr.filter((cmd) => cmd.startsWith(line));
     } else {
         const fs = require('fs');
-        let cwd = process.cwd();
-        searchArr = fs.readdirSync(cwd)
-            .map(file => {
-                let filePath = `${cwd}/${file}`;
-                if (fs.statSync(filePath).isFile()) {
-                    return file + ' ';
+        const path = require('path');
+
+        let targetPath = process.cwd(), relativePath = '', fileName = line;
+
+        if (line.includes('/')) {
+            fileName = line.split('/').slice(-1)[0];
+            relativePath = line.slice(0, line.lastIndexOf('/'));
+            targetPath = path.join(process.cwd(), relativePath);
+        }
+
+        try {
+            searchArr = fs.readdirSync(targetPath)
+                .filter(file => {
+                    let filePath = `${targetPath}/${file}`;
+                    return fs.statSync(filePath).isFile();
+                });
+            hits = searchArr.filter(file => file.startsWith(fileName)).map(file => {
+                if (line.includes('/')) {
+                    return relativePath + '/' + file + ' ';
                 }
-                return '';
+                return file + ' ';
             });
-        hits = searchArr.filter(file => file.startsWith(line));
+        } catch (err) {
+            console.log("error");
+        }
+
     }
 
     if (hits.length === 0) {
