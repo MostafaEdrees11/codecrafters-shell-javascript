@@ -19,7 +19,7 @@ const handleTabKeyPress = (rl, line, isCommand) => {
         const fs = require('fs');
         const path = require('path');
 
-        let targetPath = process.cwd(), relativePath = '', fileName = line === ' ' ? '' : line;
+        let targetPath = process.cwd(), relativePath = '', fileName = line;
 
         if (line.includes('/')) {
             fileName = line.split('/').slice(-1)[0];
@@ -77,7 +77,7 @@ const handleTabKeyPress = (rl, line, isCommand) => {
                 } else {
                     tabState.isPressed = false;
                     tabState.line = line;
-                    process.stdout.write('\n' + hits.join('') + '\n');
+                    process.stdout.write('\n' + hits.join(' ') + '\n');
                     setImmediate(() => rl.prompt(true));
                     return [[], line];
                 }
