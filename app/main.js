@@ -22,9 +22,9 @@ const rl = readline.createInterface({
 	output: process.stdout,
 	prompt: "$ ",
 	completer: (line) => {
-		let [command, ...args] = handleQuotes(line);
-		let isCommand = !args.length;
-		return handleTabKeyPress(rl, isCommand ? command : args[args.length - 1], isCommand);
+		let [command, arg] = line.split(' ');
+		let isCommand = arg === undefined;
+		return handleTabKeyPress(rl, isCommand ? command : arg, isCommand);
 		// const executables = getExecutableFiles();
 		// const commands = ['echo ', 'exit ',
 		// 	...executables

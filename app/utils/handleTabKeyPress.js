@@ -7,7 +7,6 @@ let tabState = {
 }
 
 const handleTabKeyPress = (rl, line, isCommand) => {
-
     let hits = [], searchArr = [];
 
     if (isCommand) {
@@ -20,7 +19,7 @@ const handleTabKeyPress = (rl, line, isCommand) => {
         const fs = require('fs');
         const path = require('path');
 
-        let targetPath = process.cwd(), relativePath = '', fileName = line;
+        let targetPath = process.cwd(), relativePath = '', fileName = line === ' ' ? '' : line;
 
         if (line.includes('/')) {
             fileName = line.split('/').slice(-1)[0];
@@ -29,17 +28,25 @@ const handleTabKeyPress = (rl, line, isCommand) => {
         }
 
         try {
-            searchArr = fs.readdirSync(targetPath)
-                .filter(file => {
+            searchArr = fs.readdirSync(targetPath);
+            if (fileName !== '') {
+                hits = searchArr.filter(file => file.startsWith(fileName)).map(file => {
                     let filePath = `${targetPath}/${file}`;
-                    return fs.statSync(filePath).isFile();
+
+                    if (fs.statSync(filePath).isDirectory()) {
+                        return line.includes('/') ? relativePath + '/' + file + '/' : file + '/';
+                    }
+                    return line.includes('/') ? relativePath + '/' + file + ' ' : file + ' ';
                 });
-            hits = searchArr.filter(file => file.startsWith(fileName)).map(file => {
-                if (line.includes('/')) {
-                    return relativePath + '/' + file + ' ';
+            } else {
+                let filePath = `${targetPath}/${searchArr[0]}`;
+
+                if (fs.statSync(filePath).isDirectory()) {
+                    hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + '/' : searchArr[0] + '/'];
+                } else {
+                    hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + ' ' : searchArr[0] + ' '];
                 }
-                return file + ' ';
-            });
+            }
         } catch (err) {
             console.log("error");
         }
@@ -84,6 +91,11 @@ const handleTabKeyPress = (rl, line, isCommand) => {
     }
 
     return [hits.length ? hits : searchArr, line];
+}
+
+
+const getFirst = (arr) => {
+
 }
 
 module.exports = { handleTabKeyPress };
