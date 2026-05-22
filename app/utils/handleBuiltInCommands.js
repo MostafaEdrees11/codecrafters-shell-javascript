@@ -3,6 +3,7 @@ const { echo } = require('../built-in-commands/echo');
 const { pwd } = require('../built-in-commands/pwd');
 const { cd } = require('../built-in-commands/cd');
 const { type } = require('../built-in-commands/type');
+const { complete } = require('../built-in-commands/complete');
 
 const builtInCommands = {
     'exit': exit,
@@ -10,7 +11,7 @@ const builtInCommands = {
     'type': type,
     'pwd': pwd,
     'cd': cd,
-    'complete': null
+    'complete': complete
 }
 
 const handleBuiltInCommands = (command, args) => {
