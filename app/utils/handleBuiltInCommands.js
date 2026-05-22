@@ -9,7 +9,8 @@ const builtInCommands = {
     'echo': echo,
     'type': type,
     'pwd': pwd,
-    'cd': cd
+    'cd': cd,
+    'complete': null
 }
 
 const handleBuiltInCommands = (command, args) => {
