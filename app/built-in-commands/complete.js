@@ -15,10 +15,18 @@ const complete = (command, args) => {
     if (args.includes('-p')) {
         let givenCommand = args[args.indexOf('-p') + 1];
 
-        if (registeredCommands.hasOwnProperty(givenCommand)) {
+        if (registeredCommands.hasOwnProperty(givenCommand) && registeredCommands?.[givenCommand]) {
             process.stdout.write(`complete -C '${registeredCommands[givenCommand]}' ${givenCommand}\n`);
         } else {
             process.stdout.write(`complete: ${givenCommand}: no completion specification\n`)
+        }
+    }
+
+    if (args.includes('-r')) {
+        let givenCommand = args[args.indexOf('-r') + 1];
+
+        if (registeredCommands.hasOwnProperty(givenCommand)) {
+            registeredCommands[givenCommand] = null;
         }
     }
 }
