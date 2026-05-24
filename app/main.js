@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawn } = require('node:child_process');
 
 const { isExist } = require('./utils/isExit');
 const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
@@ -28,22 +28,30 @@ const rl = readline.createInterface({
 	}
 });
 
+let backgroundJobsCounter = 1;
+
 rl.prompt();
 rl.on('line', (input) => {
 	if (input.trim()) {
 		let [command, ...args] = handleQuotes(input);
 
-		if (isBuiltInCommand(command)) {
-			handleBuiltInCommands(command, args);
-		} else if (isExternalCommand(command)) {
-			handleExternalCommands(command, args);
+		if (args[args.length - 1] === '&') {
+			let job = spawn(command, args.slice(0, args.length - 1));
+			process.stdout.write(`[${backgroundJobsCounter}] ${job.pid}\n`);
+			backgroundJobsCounter++;
 		} else {
-			let { state, data } = isExecutable(command);
-			if (state) {
-				let output = execFileSync(command, args);
-				process.stdout.write(output.toString());
+			if (isBuiltInCommand(command)) {
+				handleBuiltInCommands(command, args);
+			} else if (isExternalCommand(command)) {
+				handleExternalCommands(command, args);
 			} else {
-				console.log(`${input}: command not found`);
+				let { state, data } = isExecutable(command);
+				if (state) {
+					let output = execFileSync(command, args);
+					process.stdout.write(output.toString());
+				} else {
+					console.log(`${input}: command not found`);
+				}
 			}
 		}
 	}
