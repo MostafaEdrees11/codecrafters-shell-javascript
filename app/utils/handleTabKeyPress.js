@@ -1,12 +1,17 @@
+const fs = require('fs');
+const path = require('path');
+
 const { getExecutableFiles } = require("./getExecutableFiles");
 const { longestCommonPrefix } = require("./longestCommonPrefix");
+const { getRegisteredCommands } = require("../built-in-commands/complete");
+const { execFileSync } = require("child_process")
 
 let tabState = {
     isPressed: false,
     line: null
 }
 
-const handleTabKeyPress = (rl, line, isCommand) => {
+const handleTabKeyPress = (rl, line, isCommand, command) => {
     let hits = [], searchArr = [];
 
     if (isCommand) {
@@ -16,41 +21,49 @@ const handleTabKeyPress = (rl, line, isCommand) => {
                 .map(cmd => cmd + ' ')];
         hits = searchArr.filter((cmd) => cmd.startsWith(line));
     } else {
-        const fs = require('fs');
-        const path = require('path');
-
+        let registeredCommands = getRegisteredCommands();
         let targetPath = process.cwd(), relativePath = '', fileName = line;
 
-        if (line.includes('/')) {
-            fileName = line.split('/').slice(-1)[0];
-            relativePath = line.slice(0, line.lastIndexOf('/'));
-            targetPath = path.join(process.cwd(), relativePath);
-        }
+        if (registeredCommands.hasOwnProperty(command)) {
+            let data = execFileSync(registeredCommands[command]);
+            searchArr = data.toString().split('\n').map(cmd => cmd + ' ');
 
-        try {
-            searchArr = fs.readdirSync(targetPath);
             if (fileName !== '') {
-                hits = searchArr.filter(file => file.startsWith(fileName)).map(file => {
-                    let filePath = `${targetPath}/${file}`;
+                hits = searchArr.filter(cmd => cmd.startsWith(line));
+            } else {
+                hits = [searchArr[0]];
+            }
+        } else {
+            if (line.includes('/')) {
+                fileName = line.split('/').slice(-1)[0];
+                relativePath = line.slice(0, line.lastIndexOf('/'));
+                targetPath = path.join(process.cwd(), relativePath);
+            }
+
+            try {
+                searchArr = fs.readdirSync(targetPath);
+                if (fileName !== '') {
+                    hits = searchArr.filter(file => file.startsWith(fileName)).map(file => {
+                        let filePath = `${targetPath}/${file}`;
+
+                        if (fs.statSync(filePath).isDirectory()) {
+                            return line.includes('/') ? relativePath + '/' + file + '/' : file + '/';
+                        }
+                        return line.includes('/') ? relativePath + '/' + file + ' ' : file + ' ';
+                    });
+                } else {
+                    let filePath = `${targetPath}/${searchArr[0]}`;
 
                     if (fs.statSync(filePath).isDirectory()) {
-                        return line.includes('/') ? relativePath + '/' + file + '/' : file + '/';
+                        hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + '/' : searchArr[0] + '/'];
+                    } else {
+                        hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + ' ' : searchArr[0] + ' '];
                     }
-                    return line.includes('/') ? relativePath + '/' + file + ' ' : file + ' ';
-                });
-            } else {
-                let filePath = `${targetPath}/${searchArr[0]}`;
-
-                if (fs.statSync(filePath).isDirectory()) {
-                    hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + '/' : searchArr[0] + '/'];
-                } else {
-                    hits = [line.includes('/') ? relativePath + '/' + searchArr[0] + ' ' : searchArr[0] + ' '];
                 }
+            } catch (err) {
+                console.log("error");
             }
-        } catch (err) {
-            console.log("error");
         }
-
     }
 
     if (hits.length === 0) {
@@ -91,11 +104,6 @@ const handleTabKeyPress = (rl, line, isCommand) => {
     }
 
     return [hits.length ? hits : searchArr, line];
-}
-
-
-const getFirst = (arr) => {
-
 }
 
 module.exports = { handleTabKeyPress };

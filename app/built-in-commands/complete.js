@@ -23,4 +23,8 @@ const complete = (command, args) => {
     }
 }
 
-module.exports = { complete }
+const getRegisteredCommands = () => {
+    return registeredCommands;
+}
+
+module.exports = { complete, getRegisteredCommands }

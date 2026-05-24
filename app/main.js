@@ -24,7 +24,7 @@ const rl = readline.createInterface({
 	completer: (line) => {
 		let [command, ...args] = line.split(' ');
 		let isCommand = !args.length;
-		return handleTabKeyPress(rl, isCommand ? command : args[args.length - 1], isCommand);
+		return handleTabKeyPress(rl, isCommand ? command : args[args.length - 1], isCommand, isCommand ? '' : command);
 	}
 });
 
