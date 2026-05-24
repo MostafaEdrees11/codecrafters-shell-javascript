@@ -31,7 +31,10 @@ const handleTabKeyPress = (rl, line, isCommand, command, args) => {
                 COMP_POINT: (command + ' ' + args.join(' ')).length
             }
 
-            let data = execFileSync(registeredCommands[command], [command, line, args[args.length - 2]], { env: customEnv });
+            let argv1 = command;
+            let argv2 = line;
+            let argv3 = args.length > 1 ? args[args.length - 2] : command;
+            let data = execFileSync(registeredCommands[command], [argv1, argv2, argv3], { env: customEnv });
             searchArr = data.toString().split('\n').map(cmd => cmd + ' ');
 
             if (fileName !== '') {
