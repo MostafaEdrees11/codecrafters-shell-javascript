@@ -4,6 +4,7 @@ const { pwd } = require('../built-in-commands/pwd');
 const { cd } = require('../built-in-commands/cd');
 const { type } = require('../built-in-commands/type');
 const { complete } = require('../built-in-commands/complete');
+const { jobs } = require('../built-in-commands/jobs');
 
 const builtInCommands = {
     'exit': exit,
@@ -11,7 +12,8 @@ const builtInCommands = {
     'type': type,
     'pwd': pwd,
     'cd': cd,
-    'complete': complete
+    'complete': complete,
+    'jobs': jobs
 }
 
 const handleBuiltInCommands = (command, args) => {
