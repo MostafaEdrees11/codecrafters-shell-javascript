@@ -11,7 +11,7 @@ let tabState = {
     line: null
 }
 
-const handleTabKeyPress = (rl, line, isCommand, command) => {
+const handleTabKeyPress = (rl, line, isCommand, command, args) => {
     let hits = [], searchArr = [];
 
     if (isCommand) {
@@ -25,7 +25,7 @@ const handleTabKeyPress = (rl, line, isCommand, command) => {
         let targetPath = process.cwd(), relativePath = '', fileName = line;
 
         if (registeredCommands.hasOwnProperty(command)) {
-            let data = execFileSync(registeredCommands[command]);
+            let data = execFileSync(registeredCommands[command], [command, line, args[args.length - 2]]);
             searchArr = data.toString().split('\n').map(cmd => cmd + ' ');
 
             if (fileName !== '') {
