@@ -11,8 +11,7 @@ const { isExternalCommand } = require("./utils/isExternalCommand");
 const { handleExternalCommands } = require("./utils/handleExternalCommands");
 const { longestCommonPrefix } = require("./utils/longestCommonPrefix");
 const { handleTabKeyPress } = require("./utils/handleTabKeyPress");
-const { saveBackgroundJobs } = require("./utils/saveBackgroundJobs");
-const { jobsList } = require("./built-in-commands/jobs");
+const { saveBackgroundJobs } = require("./built-in-commands/jobs")
 
 let tabState = {
 	isPressed: false,
@@ -39,8 +38,12 @@ rl.on('line', (input) => {
 
 		if (args[args.length - 1] === '&') {
 			let job = spawn(command, args.slice(0, args.length - 1), {
-				stdio: 'inherit'
+				stdio: 'inherit',
+				detached: true,
+				shell: false
 			});
+			job.unref();
+
 			let backgroundJob = {
 				job_number: backgroundJobsCounter,
 				process_id: job.pid,
