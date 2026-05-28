@@ -44,6 +44,15 @@ rl.on('line', (input) => {
 			});
 			job.unref();
 
+			job.on('exit', () => {
+				saveBackgroundJobs({
+					job_number: backgroundJobsCounter - 1,
+					process_id: job.pid,
+					command: input,
+					status: "Done"
+				})
+			});
+
 			let backgroundJob = {
 				job_number: backgroundJobsCounter,
 				process_id: job.pid,
