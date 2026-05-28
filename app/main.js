@@ -36,7 +36,9 @@ rl.on('line', (input) => {
 		let [command, ...args] = handleQuotes(input);
 
 		if (args[args.length - 1] === '&') {
-			let job = spawn(command, args.slice(0, args.length - 1));
+			let job = spawn(command, args.slice(0, args.length - 1), {
+				stdio: 'inherit'
+			});
 			process.stdout.write(`[${backgroundJobsCounter}] ${job.pid}\n`);
 			backgroundJobsCounter++;
 		} else {
