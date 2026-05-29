@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { execFileSync, spawn } = require('node:child_process');
+const { execFileSync } = require('node:child_process');
 
 const { isExist } = require('./utils/isExit');
 const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
@@ -11,7 +11,7 @@ const { isExternalCommand } = require("./utils/isExternalCommand");
 const { handleExternalCommands } = require("./utils/handleExternalCommands");
 const { longestCommonPrefix } = require("./utils/longestCommonPrefix");
 const { handleTabKeyPress } = require("./utils/handleTabKeyPress");
-const { saveBackgroundJobs } = require("./built-in-commands/jobs")
+const { handleBackgroundJobs } = require("./utils/handleBackgroundJobs");
 
 let tabState = {
 	isPressed: false,
@@ -29,39 +29,13 @@ const rl = readline.createInterface({
 	}
 });
 
-let backgroundJobsCounter = 1;
-
 rl.prompt();
 rl.on('line', (input) => {
 	if (input.trim()) {
 		let [command, ...args] = handleQuotes(input);
 
 		if (args[args.length - 1] === '&') {
-			let job = spawn(command, args.slice(0, args.length - 1), {
-				stdio: 'inherit',
-				detached: true,
-				shell: false
-			});
-			job.unref();
-
-			job.on('exit', () => {
-				saveBackgroundJobs({
-					job_number: backgroundJobsCounter - 1,
-					process_id: job.pid,
-					command: input,
-					status: "Done"
-				})
-			});
-
-			let backgroundJob = {
-				job_number: backgroundJobsCounter,
-				process_id: job.pid,
-				command: input,
-				status: "Running",
-			};
-			saveBackgroundJobs(backgroundJob);
-			process.stdout.write(`[${backgroundJobsCounter}] ${job.pid}\n`);
-			backgroundJobsCounter++;
+			handleBackgroundJobs(input, command, args);
 		} else {
 			if (isBuiltInCommand(command)) {
 				handleBuiltInCommands(command, args);
