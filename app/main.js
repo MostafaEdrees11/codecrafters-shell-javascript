@@ -12,6 +12,7 @@ const { handleExternalCommands } = require("./utils/handleExternalCommands");
 const { longestCommonPrefix } = require("./utils/longestCommonPrefix");
 const { handleTabKeyPress } = require("./utils/handleTabKeyPress");
 const { handleBackgroundJobs } = require("./utils/handleBackgroundJobs");
+const { reapBackgroundJobs, filterBackgroundJobs } = require("./built-in-commands/jobs");
 
 let tabState = {
 	isPressed: false,
@@ -52,5 +53,12 @@ rl.on('line', (input) => {
 			}
 		}
 	}
+	let jobs = reapBackgroundJobs();
+	if (jobs.length > 0) {
+		jobs.forEach((job) => {
+			job.status === "Done" && process.stdout.write(`[${job.job_number}]${job.job_marker}  ${job.status.padEnd(24)}${job.command.slice(0, job.command.indexOf('&') - 1).trim()}\n`);
+		});
+	}
+	filterBackgroundJobs();
 	rl.prompt();
 })
