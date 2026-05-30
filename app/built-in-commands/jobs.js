@@ -33,6 +33,12 @@ const reapBackgroundJobs = () => {
 
 const filterBackgroundJobs = () => {
 	jobsList = jobsList.filter((job) => job.status !== "Done");
+	backgroundJobsCounter = jobsList.length + 1;
+	jobsList.forEach((job, index) => {
+		if (job.job_number !== index + 1) {
+			backgroundJobsCounter = index + 1;
+		}
+	});
 }
 
 const saveBackgroundJobs = ({ job_number, process, command, status, job_marker = ' ' }) => {
