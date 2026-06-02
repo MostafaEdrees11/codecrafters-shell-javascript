@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawn } = require('node:child_process');
 
 const { isExist } = require('./utils/isExit');
 const { isBuiltInCommand } = require("./utils/isBuiltInCommand");
@@ -33,32 +33,51 @@ const rl = readline.createInterface({
 rl.prompt();
 rl.on('line', (input) => {
 	if (input.trim()) {
-		let [command, ...args] = handleQuotes(input);
+		if (input.includes('|')) {
+			let commands = input.split('|').map(cmd => cmd.trim());
+			let [cmd1, ...args1] = handleQuotes(commands[0]);
+			let [cmd2, ...args2] = handleQuotes(commands[1]);
 
-		if (args[args.length - 1] === '&') {
-			handleBackgroundJobs(input, command, args);
+			let cmd1Process = spawn(cmd1, args1, { stdio: ['ignore', 'pipe', 'inherit'] });
+			let cmd2Process = spawn(cmd2, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+			cmd1Process.stdout.pipe(cmd2Process.stdin);
+			cmd2Process.stdout.pipe(process.stdout);
+
+			Promise.all([
+				new Promise((resolve) => cmd1Process.on('exit', resolve)),
+				new Promise((resolve) => cmd2Process.on('exit', resolve))
+			]).then(() => {
+				rl.prompt();
+			});
 		} else {
-			if (isBuiltInCommand(command)) {
-				handleBuiltInCommands(command, args);
-			} else if (isExternalCommand(command)) {
-				handleExternalCommands(command, args);
+			let [command, ...args] = handleQuotes(input);
+
+			if (args[args.length - 1] === '&') {
+				handleBackgroundJobs(input, command, args);
 			} else {
-				let { state, data } = isExecutable(command);
-				if (state) {
-					let output = execFileSync(command, args);
-					process.stdout.write(output.toString());
+				if (isBuiltInCommand(command)) {
+					handleBuiltInCommands(command, args);
+				} else if (isExternalCommand(command)) {
+					handleExternalCommands(command, args);
 				} else {
-					console.log(`${input}: command not found`);
+					let { state, data } = isExecutable(command);
+					if (state) {
+						let output = execFileSync(command, args);
+						process.stdout.write(output.toString());
+					} else {
+						console.log(`${input}: command not found`);
+					}
 				}
 			}
+			let jobs = reapBackgroundJobs();
+			if (jobs.length > 0) {
+				jobs.forEach((job) => {
+					job.status === "Done" && process.stdout.write(`[${job.job_number}]${job.job_marker}  ${job.status.padEnd(24)}${job.command.slice(0, job.command.indexOf('&') - 1).trim()}\n`);
+				});
+			}
+			filterBackgroundJobs();
+			rl.prompt();
 		}
 	}
-	let jobs = reapBackgroundJobs();
-	if (jobs.length > 0) {
-		jobs.forEach((job) => {
-			job.status === "Done" && process.stdout.write(`[${job.job_number}]${job.job_marker}  ${job.status.padEnd(24)}${job.command.slice(0, job.command.indexOf('&') - 1).trim()}\n`);
-		});
-	}
-	filterBackgroundJobs();
-	rl.prompt();
 })
